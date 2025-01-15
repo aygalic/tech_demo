@@ -46,11 +46,19 @@ if __name__ == "__main__":
     l2v_q_reps = np.array(results["Llama_llm2vec_queries"])
     l2v_d_reps = np.array(results["Llama_llm2vec_documents"])
 
+
+    sbert_q_reps = np.array(results["SBERT_queries"])
+    sbert_d_reps = np.array(results["SBERT_documents"])
+
+
     # similarities from original model
     print("\nOriginal Model Similarities:")
     print(compute_cosine_similarities_numpy(orig_q_reps, orig_d_reps))
 
     print("\nLLM2Vec Model Similarities:")
     print(compute_cosine_similarities_numpy(l2v_q_reps, l2v_d_reps))
+
+    print("\sBERT Model Similarities:")
+    print(compute_cosine_similarities_numpy(sbert_q_reps, sbert_d_reps))
 
     breakpoint()

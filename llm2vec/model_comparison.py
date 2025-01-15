@@ -7,12 +7,12 @@ from llm2vec import LLM2Vec
 from ressources import queries, poetry_documents, science_documents
 import json
 
-
+from sentence_transformers import SentenceTransformer
 
 ORIGINAL_MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"
 LLM2VEC_MODEL_ID = "McGill-NLP/LLM2Vec-Meta-Llama-31-8B-Instruct-mntp"
 LLM2VEC_LORA_MODEL_ID = "McGill-NLP/LLM2Vec-Meta-Llama-31-8B-Instruct-mntp-supervised"
-
+SBERT_MODEL_ID = "sentence-transformers/all-mpnet-base-v2"  # One of the best performing SBERT models
 
 class CustomLLM2Vec(LLM2Vec):
     """Custom LLM2Vec class that handles CausalLM outputs"""
@@ -66,13 +66,23 @@ def load_llm2vec_model():
     model = PeftModel.from_pretrained(model, LLM2VEC_LORA_MODEL_ID)
     return model, tokenizer
 
+def load_sbert_model():
+    """Load SentenceBERT model"""
+    return SentenceTransformer(SBERT_MODEL_ID)
+
+def prepare_sbert_input(queries):
+    """Prepare input for SBERT (removes instruction prefix)"""
+    # SBERT doesn't use instructions, so we'll just use the queries
+    return [q[1] if isinstance(q, list) else q for q in queries]
+
 
 def compare_models():
-    # Load both models
+    # Load all models
     original_model, original_tokenizer = load_original_model()
     llm2vec_model, llm2vec_tokenizer = load_llm2vec_model()
+    sbert_model = load_sbert_model()
 
-    # Create wrappers using CustomLLM2Vec
+    # Create wrappers for LLM models
     original_wrapper = CustomLLM2Vec(
         original_model, original_tokenizer, pooling_mode="mean", max_length=512
     )
@@ -80,25 +90,34 @@ def compare_models():
         llm2vec_model, llm2vec_tokenizer, pooling_mode="mean", max_length=512
     )
 
-    # Get embeddings from both models
+    # Prepare documents
+    selected_docs = poetry_documents[:1] + science_documents[:1]
+
     print("Computing embeddings...")
-
-    # Original model
+    
+    # Original model embeddings
     orig_q_reps = original_wrapper.encode(queries)
-    orig_d_reps = original_wrapper.encode(poetry_documents[:1] + science_documents[:1])
-
-    # LLM2Vec model
+    orig_d_reps = original_wrapper.encode(selected_docs)
+    
+    # LLM2Vec model embeddings
     l2v_q_reps = llm2vec_wrapper.encode(queries)
-    l2v_d_reps = llm2vec_wrapper.encode(poetry_documents[:1] + science_documents[:1])
+    l2v_d_reps = llm2vec_wrapper.encode(selected_docs)
+    
+    # SBERT embeddings
+    sbert_queries = prepare_sbert_input(queries)
+    sbert_q_reps = torch.tensor(sbert_model.encode(sbert_queries))
+    sbert_d_reps = torch.tensor(sbert_model.encode(selected_docs))
 
     results = {
-        "Llama_vanilla_queries" : orig_q_reps.cpu().numpy().tolist(),
-        "Llama_vanilla_documents" : orig_d_reps.cpu().numpy().tolist(),
-        "Llama_llm2vec_queries" : l2v_q_reps.cpu().numpy().tolist(),
-        "Llama_llm2vec_documents" : l2v_d_reps.cpu().numpy().tolist(),
+        "Llama_vanilla_queries": orig_q_reps.cpu().numpy().tolist(),
+        "Llama_vanilla_documents": orig_d_reps.cpu().numpy().tolist(),
+        "Llama_llm2vec_queries": l2v_q_reps.cpu().numpy().tolist(),
+        "Llama_llm2vec_documents": l2v_d_reps.cpu().numpy().tolist(),
+        "SBERT_queries": sbert_q_reps.cpu().numpy().tolist(),
+        "SBERT_documents": sbert_d_reps.cpu().numpy().tolist(),
     }
 
-    with open('output.json', 'w+', encoding ='utf8') as json_file:
+    with open('output.json', 'w+', encoding='utf8') as json_file:
         json.dump(results, json_file)
 
 if __name__ == "__main__":
