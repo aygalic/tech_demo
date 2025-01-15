@@ -54,8 +54,8 @@ documents = [
 d_reps = l2v.encode(documents)
 
 # Compute cosine similarity
-q_reps_norm = torch.nn.functional.normalize(q_reps, p=len(queries), dim=1)
-d_reps_norm = torch.nn.functional.normalize(d_reps, p=len(documents), dim=1)
+q_reps_norm = torch.nn.functional.normalize(q_reps, p=2, dim=1)
+d_reps_norm = torch.nn.functional.normalize(d_reps, p=2), dim=1)
 cos_sim = torch.mm(q_reps_norm, d_reps_norm.transpose(0, 1))
 
 print(cos_sim)
