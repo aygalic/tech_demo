@@ -1,10 +1,11 @@
 """This demo have been poached from llm2vec's hugging face space
 https://huggingface.co/McGill-NLP/LLM2Vec-Meta-Llama-31-8B-Instruct-mntp-supervised"""
-from llm2vec import LLM2Vec
 
 import torch
-from transformers import AutoTokenizer, AutoModel, AutoConfig
 from peft import PeftModel
+from transformers import AutoConfig, AutoModel, AutoTokenizer
+
+from llm2vec import LLM2Vec
 
 # Loading base Mistral model, along with custom code that enables bidirectional connections in decoder-only LLMs. MNTP LoRA weights are merged into the base model.
 tokenizer = AutoTokenizer.from_pretrained(
@@ -51,7 +52,7 @@ documents = [
     "As a general guideline, the CDC's average requirement of protein for women ages 19 to 70 is 46 grams per day. But, as you can see from this chart, you'll need to increase that if you're expecting or training for a marathon. Check out the chart below to see how much protein you should be eating each day.",
     "Definition of summit for English Language Learners. : 1  the highest point of a mountain : the top of a mountain. : 2  the highest level. : 3  a meeting or series of meetings between the leaders of two or more governments.",
     "A cat is feline",
-    "A cat is just like a dog"
+    "A cat is just like a dog",
 ]
 d_reps = l2v.encode(documents)
 
