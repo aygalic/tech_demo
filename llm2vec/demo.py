@@ -1,3 +1,5 @@
+"""This demo have been poached from llm2vec's hugging face space
+https://huggingface.co/McGill-NLP/LLM2Vec-Meta-Llama-31-8B-Instruct-mntp-supervised"""
 from llm2vec import LLM2Vec
 
 import torch
