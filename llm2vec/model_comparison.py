@@ -4,6 +4,11 @@ from transformers import AutoConfig, AutoModel, AutoModelForCausalLM, AutoTokeni
 
 from llm2vec import LLM2Vec
 
+from ressources import queries, poetry_documents, science_documents
+import json
+
+
+
 ORIGINAL_MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"
 LLM2VEC_MODEL_ID = "McGill-NLP/LLM2Vec-Meta-Llama-31-8B-Instruct-mntp"
 LLM2VEC_LORA_MODEL_ID = "McGill-NLP/LLM2Vec-Meta-Llama-31-8B-Instruct-mntp-supervised"
@@ -75,47 +80,26 @@ def compare_models():
         llm2vec_model, llm2vec_tokenizer, pooling_mode="mean", max_length=512
     )
 
-    # Test data
-    instruction = (
-        "Given a web search query, retrieve relevant passages that answer the query:"
-    )
-    queries = [
-        [instruction, "how much protein should a female eat"],
-        [instruction, "summit define"],
-        [instruction, "What is a cat"],
-    ]
-
-    documents = [
-        "As a general guideline, the CDC's average requirement of protein for women ages 19 to 70 is 46 grams per day. But, as you can see from this chart, you'll need to increase that if you're expecting or training for a marathon. Check out the chart below to see how much protein you should be eating each day.",
-        "Definition of summit for English Language Learners. : 1  the highest point of a mountain : the top of a mountain. : 2  the highest level. : 3  a meeting or series of meetings between the leaders of two or more governments.",
-        "A cat is feline",
-        "A cat is just like a dog",
-    ]
-
     # Get embeddings from both models
     print("Computing embeddings...")
 
     # Original model
-    breakpoint()
     orig_q_reps = original_wrapper.encode(queries)
-    orig_d_reps = original_wrapper.encode(documents)
+    orig_d_reps = original_wrapper.encode(poetry_documents[:1] + science_documents[:1])
 
     # LLM2Vec model
     l2v_q_reps = llm2vec_wrapper.encode(queries)
-    l2v_d_reps = llm2vec_wrapper.encode(documents)
+    l2v_d_reps = llm2vec_wrapper.encode(poetry_documents[:1] + science_documents[:1])
 
-    # Compute similarities for both models
-    def compute_similarities(q_reps, d_reps):
-        q_reps_norm = torch.nn.functional.normalize(q_reps, p=2, dim=1)
-        d_reps_norm = torch.nn.functional.normalize(d_reps, p=2, dim=1)
-        return torch.mm(q_reps_norm, d_reps_norm.transpose(0, 1))
+    results = {
+        "Llama_vanilla_queries" : orig_q_reps.cpu().numpy().tolist(),
+        "Llama_vanilla_documents" : orig_d_reps.cpu().numpy().tolist(),
+        "Llama_llm2vec_queries" : l2v_q_reps.cpu().numpy().tolist(),
+        "Llama_llm2vec_documents" : l2v_d_reps.cpu().numpy().tolist(),
+    }
 
-    print("\nOriginal Model Similarities:")
-    print(compute_similarities(orig_q_reps, orig_d_reps))
-
-    print("\nLLM2Vec Model Similarities:")
-    print(compute_similarities(l2v_q_reps, l2v_d_reps))
-
+    with open('output.json', 'w+', encoding ='utf8') as json_file:
+        json.dump(results, json_file)
 
 if __name__ == "__main__":
     compare_models()
