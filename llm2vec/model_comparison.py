@@ -92,6 +92,7 @@ def compare_models():
 
     # Prepare documents
     selected_docs = poetry_documents[:1] + science_documents[:1]
+    selected_docs = poetry_documents + science_documents
 
     print("Computing embeddings...")
     

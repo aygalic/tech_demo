@@ -1,6 +1,8 @@
 import json
 import numpy as np
 from typing import List
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 def compute_cosine_similarities_numpy(list1: List[List[float]], 
                                     list2: List[List[float]]) -> np.ndarray:
@@ -53,10 +55,20 @@ if __name__ == "__main__":
 
     # similarities from original model
     print("\nOriginal Model Similarities:")
-    print(compute_cosine_similarities_numpy(orig_q_reps, orig_d_reps))
+    original_model_similarities = compute_cosine_similarities_numpy(orig_q_reps, orig_d_reps)
+    print(original_model_similarities)
 
     print("\nLLM2Vec Model Similarities:")
-    print(compute_cosine_similarities_numpy(l2v_q_reps, l2v_d_reps))
+    llm2vec_model_similarities = compute_cosine_similarities_numpy(l2v_q_reps, l2v_d_reps)
+    print(llm2vec_model_similarities)
 
     print("\nsBERT Model Similarities:")
-    print(compute_cosine_similarities_numpy(sbert_q_reps, sbert_d_reps))
+    sBERT_model_similarities = compute_cosine_similarities_numpy(sbert_q_reps, sbert_d_reps)
+    print(sBERT_model_similarities)
+
+    sns.heatmap(original_model_similarities)
+    plt.show()
+    sns.heatmap(llm2vec_model_similarities)*
+    plt.show()
+    sns.heatmap(sBERT_model_similarities)
+    plt.show()
