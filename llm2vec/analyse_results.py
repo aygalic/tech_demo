@@ -58,7 +58,5 @@ if __name__ == "__main__":
     print("\nLLM2Vec Model Similarities:")
     print(compute_cosine_similarities_numpy(l2v_q_reps, l2v_d_reps))
 
-    print("\sBERT Model Similarities:")
+    print("\nsBERT Model Similarities:")
     print(compute_cosine_similarities_numpy(sbert_q_reps, sbert_d_reps))
-
-    breakpoint()
