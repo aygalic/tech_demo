@@ -1,3 +1,5 @@
+"""Proof of concept on the feasability of an LLM2Vec -> MTEB pipeline"""
+
 import torch
 from peft import PeftModel
 from transformers import AutoConfig, AutoModel, AutoModelForCausalLM, AutoTokenizer
