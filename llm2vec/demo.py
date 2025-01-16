@@ -19,7 +19,6 @@ model = AutoModel.from_pretrained(
     trust_remote_code=True,
     config=config,
     torch_dtype=torch.bfloat16,
-    #    device_map="cuda" if torch.cuda.is_available() else "cpu",
     device_map="cpu",
 )
 model = PeftModel.from_pretrained(
