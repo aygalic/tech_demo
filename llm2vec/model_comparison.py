@@ -1,83 +1,8 @@
 import json
 
 import torch
-from peft import PeftModel
-from sentence_transformers import SentenceTransformer
-from transformers import AutoConfig, AutoModel, AutoModelForCausalLM, AutoTokenizer
-
-from llm2vec import LLM2Vec
-
-ORIGINAL_MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"
-LLM2VEC_MODEL_ID = "McGill-NLP/LLM2Vec-Meta-Llama-31-8B-Instruct-mntp"
-LLM2VEC_LORA_MODEL_ID = "McGill-NLP/LLM2Vec-Meta-Llama-31-8B-Instruct-mntp-supervised"
-SBERT_MODEL_ID = (
-    "sentence-transformers/all-mpnet-base-v2"  # One of the best performing SBERT models
-)
-
-
-class CustomLLM2Vec(LLM2Vec):
-    """Custom LLM2Vec class that handles CausalLM outputs"""
-
-    def forward(self, sentence_feature):
-        outputs = self.model(
-            input_ids=sentence_feature["input_ids"],
-            attention_mask=sentence_feature["attention_mask"],
-            output_hidden_states=True,  # Make sure to get hidden states
-        )
-        # For CausalLM models, use hidden_states instead of last_hidden_state
-        if hasattr(outputs, "hidden_states"):
-            last_hidden = outputs.hidden_states[-1]
-        else:
-            last_hidden = outputs.last_hidden_state
-
-        return self.get_pooling(sentence_feature, last_hidden)
-
-
-def load_original_model():
-    """Load the original Llama model"""
-    tokenizer = AutoTokenizer.from_pretrained(LLM2VEC_MODEL_ID)
-    model = AutoModelForCausalLM.from_pretrained(
-        ORIGINAL_MODEL_ID,
-        torch_dtype=torch.bfloat16,
-        device_map="cpu",
-        output_hidden_states=True,  # Make sure this is enabled
-    )
-    return model, tokenizer
-
-
-def load_llm2vec_model():
-    """Load the LLM2Vec-enhanced model"""
-    tokenizer = AutoTokenizer.from_pretrained(LLM2VEC_MODEL_ID)
-    config = AutoConfig.from_pretrained(LLM2VEC_MODEL_ID, trust_remote_code=True)
-    model = AutoModel.from_pretrained(
-        LLM2VEC_MODEL_ID,
-        trust_remote_code=True,
-        config=config,
-        torch_dtype=torch.bfloat16,
-        device_map="cpu",
-    )
-    # Load MNTP weights
-    model = PeftModel.from_pretrained(
-        model,
-        LLM2VEC_MODEL_ID,
-    )
-    model = model.merge_and_unload()
-
-    # Load supervised weights
-    model = PeftModel.from_pretrained(model, LLM2VEC_LORA_MODEL_ID)
-    return model, tokenizer
-
-
-def load_sbert_model():
-    """Load SentenceBERT model"""
-    return SentenceTransformer(SBERT_MODEL_ID)
-
-
-def prepare_sbert_input(queries):
-    """Prepare input for SBERT (removes instruction prefix)"""
-    # SBERT doesn't use instructions, so we'll just use the queries
-    return [q[1] if isinstance(q, list) else q for q in queries]
-
+from src.llm2vec.model_factory import load_original_model, load_sbert_model, load_llm2vec_model
+from src.llm2vec.custom_llm2vec import CustomLLM2Vec
 
 def get_data(
     json_path: str = "assets/llm2vec/ressources.json",
@@ -138,8 +63,7 @@ def compare_models():
     l2v_d_reps = llm2vec_wrapper.encode(selected_docs)
 
     # SBERT embeddings
-    sbert_queries = prepare_sbert_input(queries)
-    sbert_q_reps = torch.tensor(sbert_model.encode(sbert_queries))
+    sbert_q_reps = torch.tensor(sbert_model.encode(queries))
     sbert_d_reps = torch.tensor(sbert_model.encode(selected_docs))
 
     results = {
