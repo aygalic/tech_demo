@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     results = None
 
-    with open("output.json", encoding="utf-8") as f:
+    with open("output/llm2vec/embeddings.json", encoding="utf-8") as f:
         results = json.load(f)
 
     orig_q_reps = np.array(results["Llama_vanilla_queries"])

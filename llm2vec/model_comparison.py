@@ -103,8 +103,6 @@ def get_data(
     queries = [instruct + query for query in ressources["queries"]]
     poetry_documents = ressources["documents"]["poetry_documents"]
     science_documents = ressources["documents"]["science_documents"]
-    breakpoint()
-
     return queries, poetry_documents, science_documents
 
 
@@ -153,7 +151,7 @@ def compare_models():
         "SBERT_documents": sbert_d_reps.cpu().numpy().tolist(),
     }
 
-    with open("output.json", "w+", encoding="utf8") as json_file:
+    with open("output/llm2vec/embeddings.json", "w+", encoding="utf8") as json_file:
         json.dump(results, json_file)
 
 
