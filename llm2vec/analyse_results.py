@@ -59,7 +59,7 @@ if __name__ == "__main__":
     sBERT_model_similarities = compute_cosine_similarities_numpy(
         sbert_q_reps, sbert_d_reps
     )
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 6))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 6), sharey=True)
 
     vmin = min(
         original_model_similarities.min().min(),
