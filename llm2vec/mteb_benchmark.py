@@ -8,20 +8,29 @@ from src.llm2vec.model_factory import load_original_model, load_sbert_model, loa
 from src.llm2vec.sentence_transformer_wrapper import SentenceTransformerWrapper
 
 
-def evaluate_model(model_wrapper, model_name):
-    """Run MTEB evaluation"""
-    
-    evaluation = MTEB(tasks=["ArXivHierarchicalClusteringS2S"])
-    #evaluation = MTEB(tasks=["EmotionClassification"])
-    evaluation = MTEB(tasks=["TwentyNewsgroupsClustering"])
+def evaluate_model(model, model_name: str, tasks: list[str] | None = None) -> list:
+    """Run MTEB evaluation
 
-    #breakpoint()
-    results = evaluation.run(model_wrapper,  output_folder=f"results/{model_name}")
+    Parameters
+    ----------
+    model : _type_ #FIXME
+        Model to evaluate
+    model_name : str
+        Name of the model
+    tasks : list[str], optional
+        Benchmark subtask, if None is provided, the name of all tasks will be
+        output in the console, by default None
+
+    Returns
+    -------
+    list[TaskResult]
+        Benchmark results for the provided model
+    """
+    evaluation = MTEB(tasks=tasks)
+    results = evaluation.run(model,  output_folder=f"results/{model_name}")
     return results
 
-
-
-def benchmark_models():
+def benchmark_models() -> dict[str: list]:
     # Load all models
     print("Loading models...")
     
@@ -38,7 +47,7 @@ def benchmark_models():
 
     # Run evaluations
     print("Running MTEB evaluations...")
-    
+    tasks = ["TwentyNewsgroupsClustering"]
     models = {
         "sbert": sbert_model,
         "llama_vanilla": original_wrapper,
@@ -48,7 +57,7 @@ def benchmark_models():
     results = {}
     for model_name, wrapper in models.items():
         print(f"\nEvaluating {model_name}...")
-        results[model_name] = evaluate_model(wrapper, model_name)
+        results[model_name] = evaluate_model(wrapper, model_name, tasks)
     
     # Save results
     with open('llm2vec/mteb_results.json', 'w+', encoding = "utf-8") as f:
@@ -57,9 +66,9 @@ def benchmark_models():
     return results
 
 if __name__ == "__main__":
-    results = benchmark_models()
+    bechmark_results = benchmark_models()
     # Print summary metrics
-    for model_name, model_results in results.items():
+    for model_name, model_results in bechmark_results.items():
         print(f"\nResults for {model_name}:")
         for task_type, scores in model_results.items():
             if isinstance(scores, dict):
