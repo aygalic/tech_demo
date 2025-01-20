@@ -1,9 +1,10 @@
+"""Wrapper for LLM2Vec, used to provide support for MTEB embeddings"""
 from llm2vec import LLM2Vec
 
 class CustomLLM2Vec(LLM2Vec):
     """Custom LLM2Vec class that handles CausalLM outputs"""
 
-    def forward(self, sentence_feature):
+    def forward(self, sentence_feature: dict):
         outputs = self.model(
             input_ids=sentence_feature["input_ids"],
             attention_mask=sentence_feature["attention_mask"],
